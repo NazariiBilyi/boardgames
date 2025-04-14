@@ -1,0 +1,5 @@
+{
+  "env": {
+    "MONGO_URI": "mongodb+srv://nazar_bilyi:Tobius198815@cluster0.bynzuof.mongodb.net"
+  }
+}
