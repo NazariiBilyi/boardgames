@@ -1,7 +1,7 @@
 import express from "express";
 import {body} from "express-validator";
 import User from '../models/User';
-import {signup} from "../controllers/authController";
+import {signup, login} from "../controllers/authController";
 
 const router = express.Router();
 
@@ -28,5 +28,14 @@ router.put("/signup", [
         .not()
         .isEmpty()
 ], signup)
+
+router.post("/login", [
+    body('email')
+        .isEmail()
+        .withMessage('Please enter valid email'),
+    body('password')
+        .trim()
+        .isLength({ min: 5, max: 255 }),
+], login)
 
 export default router

@@ -9,7 +9,6 @@ import {Error} from "mongoose";
 
 export const signup = async (req, res, next) => {
     const errors = validationResult(req);
-    console.log(errors);
     if (!errors.isEmpty()) {
         const error = new Error('Validation failed') as IError;
         error.statusCode = 422;
@@ -52,13 +51,12 @@ export const login = async (req: express.Request, res: express.Response, next: e
         error.statusCode = 404;
         throw error;
     }
-    await bcrypt.compare(user.password, password, (err, isMatch) => {
-        if(!isMatch) {
-            const error = new Error('You entered an incorrect password') as IError;
-            error.statusCode = 401;
-            throw error;
-        }
-    });
+    const match = await bcrypt.compare(password, user.password)
+    if(!match) {
+        const error = new Error('You entered an incorrect password') as IError;
+        error.statusCode = 401;
+        throw error;
+    }
     const token = jwttoken.sign({
         email: user.email,
         id: user._id.toString(),
