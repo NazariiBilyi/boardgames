@@ -22,7 +22,8 @@ const User = new Schema({
     orders: {
         type: Schema.Types.ObjectId,
         ref: "Order",
-    }
+    },
+    resetPasswordToken: String,
 })
 
 export default mongoose.model('User', User);

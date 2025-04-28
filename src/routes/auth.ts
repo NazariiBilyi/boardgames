@@ -1,7 +1,7 @@
 import express from "express";
 import {body} from "express-validator";
 import User from '../models/User';
-import {signup, login} from "../controllers/authController";
+import {signup, login, forgotPassword, resetPassword} from "../controllers/authController";
 
 const router = express.Router();
 
@@ -37,5 +37,25 @@ router.post("/login", [
         .trim()
         .isLength({ min: 5, max: 255 }),
 ], login)
+
+router.post("/forgotPassword", [
+    body('email')
+        .isEmail()
+        .withMessage('Please enter valid email')
+        .custom(async (value: string, {req}) => {
+            const user = await User.findOne({email: value});
+            if (!user) {
+                return Promise.reject('Email doesnt exist');
+            }
+        })
+        .normalizeEmail()
+], forgotPassword)
+
+router.post("/resetPassword", [
+    body('password')
+        .trim()
+        .isLength({ min: 5, max: 255 }),
+
+], resetPassword)
 
 export default router
