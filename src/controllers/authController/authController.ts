@@ -1,12 +1,11 @@
-import User from '../models/User';
+import User from '../../models/User';
 
 import express from 'express';
 import {validationResult} from 'express-validator';
-import bcrypt from 'bcryptjs';
-import jwttoken from 'jsonwebtoken';
 import {IError} from "./types";
-import {Error, Types } from "mongoose";
-import {sendMail} from "../utils/sendMail";
+import {Error } from "mongoose";
+import {compareUserPasswordService, createUserPasswordService} from "../../services/authService";
+import {sendMail} from "../../services/mailService";
 
 export const signup = async (req, res, next) => {
     const errors = validationResult(req);
@@ -17,15 +16,13 @@ export const signup = async (req, res, next) => {
         throw error;
     }
     const { email, password, firstName, lastName } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 12).catch((err: IError) => {
-        if(!err.statusCode){
-            err.statusCode = 500;
-        }
-        next(err);
-    });
+
+    const hashPassword = createUserPasswordService(password, next)
+
     const user = await User.create({
         email,
-        password: hashedPassword,
+        password: hashPassword,
+        role: 0,
         firstName,
         lastName,
     })
@@ -48,19 +45,16 @@ export const login = async (req: express.Request, res: express.Response, next: e
         error.statusCode = 404;
         throw error;
     }
-    const match = await bcrypt.compare(password, user.password)
+
+    const match = await compareUserPasswordService(password, user.password, next)
     if(!match) {
         const error = new Error('You entered an incorrect password') as IError;
         error.statusCode = 401;
         throw error;
     }
-    const token = jwttoken.sign({
-        email: user.email,
-        id: user._id.toString(),
-    }, process.env.SECRET, {expiresIn: '1d'});
+    const token = user.generateAccessToken();
     res.status(200).json({
         message: 'User successfully logged in',
-        userId: user._id.toString(),
         token: token
     })
 }
@@ -75,8 +69,7 @@ export const forgotPassword = async (req: express.Request, res: express.Response
         throw error;
     }
 
-    const secret = process.env.SECRET + user.password;
-    const token = jwttoken.sign({id: user._id.toString(), email}, secret, {expiresIn: '1d'});
+    const token = user.generateResetPasswordToken();
     const resetURL = `${environmentURL}/reset-password/${token}/${user._id.toString()}`;
     user.resetPasswordToken = token;
     await user.save()
@@ -107,14 +100,9 @@ export const resetPassword = async (req: express.Request, res: express.Response,
         throw error;
     }
 
-    user.password = await bcrypt.hash(password, 12).catch((err: IError) => {
-        if (!err.statusCode) {
-            err.statusCode = 500;
-        }
-        next(err);
-    }) as string;
+    user.password = await createUserPasswordService(password, next)
+    user.resetPasswordToken = ''
     await user.save()
-
     res.status(200).json({ message: 'Password has been changed' });
 }
 

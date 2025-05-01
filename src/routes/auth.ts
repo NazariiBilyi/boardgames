@@ -1,7 +1,7 @@
 import express from "express";
 import {body} from "express-validator";
 import User from '../models/User';
-import {signup, login, forgotPassword, resetPassword} from "../controllers/authController";
+import {signup, login, forgotPassword, resetPassword} from "../controllers/authController/authController";
 
 const router = express.Router();
 
@@ -55,7 +55,6 @@ router.post("/resetPassword", [
     body('password')
         .trim()
         .isLength({ min: 5, max: 255 }),
-
 ], resetPassword)
 
 export default router
