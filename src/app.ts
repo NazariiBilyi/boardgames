@@ -2,14 +2,33 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import multer from 'multer';
 
 import authRouter from './routes/auth';
+import adminRouter from './routes/admin'
 
 const app = express();
 
 app.use(cors({
   origin: '*'
 }));
+
+const fileFilter = (req, file, cb) => {
+    if (
+        file.mimetype === 'image/png' ||
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'image/jpeg'
+    ) {
+        cb(null, true);
+    } else {
+        cb(null, false);
+    }
+};
+
+const storage = multer.memoryStorage(); // Store files in memory
+const upload = multer({ storage: storage, fileFilter: fileFilter});
+
+app.use(upload.array('images', 10));
 
 app.use(bodyParser.json());
 
@@ -24,6 +43,7 @@ app.use((err, req: express.Request, res: express.Response, next: express.NextFun
 })
 
 app.use('/auth', authRouter)
+app.use('/admin', adminRouter)
 
 mongoose.connect(MONGODB_URI).then((db) => {
     app.listen(process.env.PORT || 8080)

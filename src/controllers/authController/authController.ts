@@ -1,4 +1,4 @@
-import User from '../../models/User';
+import UserSchema from '../../models/UserSchema';
 
 import express from 'express';
 import {validationResult} from 'express-validator';
@@ -17,9 +17,9 @@ export const signup = async (req, res, next) => {
     }
     const { email, password, firstName, lastName } = req.body;
 
-    const hashPassword = createUserPasswordService(password, next)
+    const hashPassword = await createUserPasswordService(password, next)
 
-    const user = await User.create({
+    const user = await UserSchema.create({
         email,
         password: hashPassword,
         role: 0,
@@ -34,7 +34,7 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { email, password } = req.body;
-    const user = await User.findOne({email: email}).catch((err) => {
+    const user = await UserSchema.findOne({email: email}).catch((err) => {
         if(!err.statusCode){
             err.statusCode = 500;
         }
@@ -62,7 +62,7 @@ export const login = async (req: express.Request, res: express.Response, next: e
 export const forgotPassword = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const {email, environmentURL} = req.body;
 
-    const user = await User.findOne({email})
+    const user = await UserSchema.findOne({email})
     if (!user) {
         const error = new Error('User does not exist') as IError;
         error.statusCode = 404;
@@ -86,7 +86,7 @@ export const forgotPassword = async (req: express.Request, res: express.Response
 export const resetPassword = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const {password, token, userId} = req.body;
 
-    const user = await User.findOne({_id: userId})
+    const user = await UserSchema.findOne({_id: userId})
 
     if (!user) {
         const error = new Error('User does not exist') as IError;

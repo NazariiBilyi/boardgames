@@ -1,6 +1,6 @@
 import express from "express";
 import {body} from "express-validator";
-import User from '../models/User';
+import UserSchema from '../models/UserSchema';
 import {signup, login, forgotPassword, resetPassword} from "../controllers/authController/authController";
 
 const router = express.Router();
@@ -10,7 +10,7 @@ router.put("/signup", [
         .isEmail()
         .withMessage('Please enter valid email')
         .custom(async (value, {req}) => {
-            const user = await User.findOne({email: value});
+            const user = await UserSchema.findOne({email: value});
             if (user) {
                 return Promise.reject('Email already exists');
             }
@@ -43,7 +43,7 @@ router.post("/forgotPassword", [
         .isEmail()
         .withMessage('Please enter valid email')
         .custom(async (value: string, {req}) => {
-            const user = await User.findOne({email: value});
+            const user = await UserSchema.findOne({email: value});
             if (!user) {
                 return Promise.reject('Email doesnt exist');
             }

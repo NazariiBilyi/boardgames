@@ -3,7 +3,7 @@ import jwttoken from "jsonwebtoken";
 
 const Schema = mongoose.Schema;
 
-const User = new Schema({
+const UserSchema = new Schema({
     firstName: {
         type: String,
         required: true,
@@ -44,4 +44,4 @@ const User = new Schema({
     },
 })
 
-export default mongoose.model('User', User);
+export default mongoose.model('User', UserSchema);
