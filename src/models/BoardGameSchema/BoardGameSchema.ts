@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
-import ShopItemSchema from "./ShopItemSchema";
+import ShopItemSchema from "../ShopItemSchema/ShopItemSchema";
+import {IBoardGame} from "./types";
 
 const Schema = mongoose.Schema;
 
-const BoardGameSchema = new Schema({
+const BoardGameSchema = new Schema<IBoardGame>({
     gameTime: {
         type: String,
         required: true
@@ -20,4 +21,4 @@ const BoardGameSchema = new Schema({
 
 ShopItemSchema.discriminator('BoardGame', BoardGameSchema)
 
-export default mongoose.model('BoardGame')
+export default mongoose.model<IBoardGame>('BoardGame')

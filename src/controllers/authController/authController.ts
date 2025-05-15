@@ -1,4 +1,4 @@
-import UserSchema from '../../models/UserSchema';
+import UserSchema from '../../models/UserSchema/UserSchema';
 
 import express from 'express';
 import {validationResult} from 'express-validator';
@@ -6,6 +6,7 @@ import {IError} from "./types";
 import {Error } from "mongoose";
 import {compareUserPasswordService, createUserPasswordService} from "../../services/authService";
 import {sendMail} from "../../services/mailService";
+import {UserDocument} from "../../models/UserSchema/types";
 
 export const signup = async (req, res, next) => {
     const errors = validationResult(req);
@@ -34,12 +35,7 @@ export const signup = async (req, res, next) => {
 
 export const login = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { email, password } = req.body;
-    const user = await UserSchema.findOne({email: email}).catch((err) => {
-        if(!err.statusCode){
-            err.statusCode = 500;
-        }
-        next(err);
-    });
+    const user = await UserSchema.findOne({email: email}) as UserDocument;
     if (!user) {
         const error = new Error('User does not exist') as IError;
         error.statusCode = 404;
@@ -52,7 +48,7 @@ export const login = async (req: express.Request, res: express.Response, next: e
         error.statusCode = 401;
         throw error;
     }
-    const token = user.generateAccessToken();
+    const token = user.generateAccessToken() ;
     res.status(200).json({
         message: 'User successfully logged in',
         token: token
@@ -62,7 +58,7 @@ export const login = async (req: express.Request, res: express.Response, next: e
 export const forgotPassword = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const {email, environmentURL} = req.body;
 
-    const user = await UserSchema.findOne({email})
+    const user = await UserSchema.findOne({email}) as UserDocument;
     if (!user) {
         const error = new Error('User does not exist') as IError;
         error.statusCode = 404;
@@ -86,7 +82,7 @@ export const forgotPassword = async (req: express.Request, res: express.Response
 export const resetPassword = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const {password, token, userId} = req.body;
 
-    const user = await UserSchema.findOne({_id: userId})
+    const user = await UserSchema.findOne({_id: userId}) as UserDocument
 
     if (!user) {
         const error = new Error('User does not exist') as IError;

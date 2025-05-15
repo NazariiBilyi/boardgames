@@ -1,9 +1,9 @@
 import {NextFunction, Request, Response } from "express";
 import {ITEM_TYPES} from "./types";
-import BoardGame from "../../models/BoardGameSchema";
+import BoardGame from "../../models/BoardGameSchema/BoardGameSchema";
 import {Error} from "mongoose";
 import {IError} from "../authController/types";
-import ImagesSchema from "../../models/ImagesSchema";
+import ImagesSchema from "../../models/ImagesSchema/ImagesSchema";
 
 export const addNewItem = async (req: Request, res: Response, next: NextFunction) => {
     const { itemType } = req.body;
@@ -16,7 +16,7 @@ export const addNewItem = async (req: Request, res: Response, next: NextFunction
                 });
                 res.status(200).json({
                     message: "New board game added successfully",
-                    boardGameId: createdBoardGame._id.toString()
+                    itemId: createdBoardGame._id.toString()
                 })
             } catch (error) {
                 const err = new Error(error.message) as IError;
@@ -54,5 +54,23 @@ export const uploadImages= async (req: Request, res: Response, next: NextFunctio
         const err = new Error(error.message) as IError;
         err.statusCode = error.statusCode;
         throw err;
+    }
+}
+
+export const getItemsByType = async (req: Request, res: Response, next: NextFunction) => {
+    const { type } = req.params
+    let products = []
+    if(type !in ITEM_TYPES) {
+        const err = new Error('Invalid type') as IError;
+        err.statusCode = 400;
+        throw err;
+    }
+    try {
+        switch (Number(type)) {
+            case ITEM_TYPES.BOARD_GAME:
+                const products = await BoardGame.find()
+        }
+    } catch (e){
+
     }
 }

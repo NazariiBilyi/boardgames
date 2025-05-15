@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
+import {IImages} from "./types";
 
 const Schema = mongoose.Schema
 
-const ImagesSchema = new Schema({
+const ImagesSchema = new Schema<IImages>({
     images: [
         {
             data: Buffer,
@@ -16,4 +17,4 @@ const ImagesSchema = new Schema({
     }
 })
 
-export default mongoose.model('Images', ImagesSchema);
+export default mongoose.model<IImages>('Images', ImagesSchema);

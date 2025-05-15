@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
+import {IShopItem} from "./types";
 
 const Schema = mongoose.Schema;
 
-const ShopItemSchema = new Schema({
+const ShopItemSchema = new Schema<IShopItem>({
     name: {
         type: String,
         required: true
@@ -37,4 +38,4 @@ const ShopItemSchema = new Schema({
     }
 })
 
-export default mongoose.model('ShopItem', ShopItemSchema);
+export default mongoose.model<IShopItem>('ShopItem', ShopItemSchema);

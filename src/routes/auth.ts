@@ -1,6 +1,6 @@
 import express from "express";
 import {body} from "express-validator";
-import UserSchema from '../models/UserSchema';
+import UserSchema from '../models/UserSchema/UserSchema';
 import {signup, login, forgotPassword, resetPassword} from "../controllers/authController/authController";
 
 const router = express.Router();
