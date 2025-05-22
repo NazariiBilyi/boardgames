@@ -1,4 +1,4 @@
-import express from "express";
+import express, {Response, Request, NextFunction} from "express";
 import mongoose from "mongoose";
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -6,6 +6,7 @@ import multer from 'multer';
 
 import authRouter from './routes/auth';
 import adminRouter from './routes/admin'
+import {IError} from "./controllers/authController/types";
 
 const app = express();
 
@@ -34,7 +35,7 @@ app.use(bodyParser.json());
 
 const MONGODB_URI = process.env.MONGO_URI;
 
-app.use((err, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
     const status = err.statusCode || 500;
     const message = err.message;
     res.status(status).json({

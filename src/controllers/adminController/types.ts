@@ -4,3 +4,7 @@ export enum ITEM_TYPES {
     COMIC_BOOK = 2,
     ACCESSORIES = 3
 }
+
+export type ItemTypeParams = {
+    itemType: string;
+};

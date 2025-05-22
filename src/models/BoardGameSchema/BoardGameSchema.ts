@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import ShopItemSchema from "../ShopItemSchema/ShopItemSchema";
-import {IBoardGame} from "./types";
+import {BoardGameDocument, IBoardGame} from "./types";
 
 const Schema = mongoose.Schema;
 
-const BoardGameSchema = new Schema<IBoardGame>({
+const BoardGameSchema = new Schema<BoardGameDocument>({
     gameTime: {
         type: String,
         required: true
@@ -19,6 +19,14 @@ const BoardGameSchema = new Schema<IBoardGame>({
     }
 })
 
+BoardGameSchema.set('toJSON', {
+    transform: function (doc, ret) {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+    }
+});
+
 ShopItemSchema.discriminator('BoardGame', BoardGameSchema)
 
-export default mongoose.model<IBoardGame>('BoardGame')
+export default mongoose.model<BoardGameDocument>('BoardGame')

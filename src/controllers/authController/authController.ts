@@ -1,33 +1,36 @@
 import UserSchema from '../../models/UserSchema/UserSchema';
 
-import express from 'express';
-import {validationResult} from 'express-validator';
+import express, {NextFunction, Request, Response} from 'express';
 import {IError} from "./types";
 import {Error } from "mongoose";
-import {compareUserPasswordService, createUserPasswordService} from "../../services/authService";
+import {compareUserPasswordService, createNewUser, createUserPasswordService} from "../../services/authService";
 import {sendMail} from "../../services/mailService";
-import {UserDocument} from "../../models/UserSchema/types";
+import {IUser, UserDocument} from "../../models/UserSchema/types";
+import {createError, throwNotFound, throwNotMatch, validateInputData} from "../helpers/valodationHelper";
 
-export const signup = async (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        const error = new Error('Validation failed') as IError;
-        error.statusCode = 422;
-        error.data = errors.array();
-        throw error;
-    }
+export const signup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+
+    validateInputData(req, next)
+
     const { email, password, firstName, lastName } = req.body;
 
-    const hashPassword = await createUserPasswordService(password, next)
+    let user: IUser
+    try {
+        const hashPassword = await createUserPasswordService(password, next)
 
-    const user = await UserSchema.create({
-        email,
-        password: hashPassword,
-        role: 0,
-        firstName,
-        lastName,
-    })
-    return res.status(201).json({
+        user = await createNewUser({
+            email,
+            password: hashPassword,
+            role: 0,
+            firstName,
+            lastName,
+        })
+    } catch (error) {
+        const err = createError(error)
+        next(err)
+    }
+
+    res.status(201).json({
         message: 'User successfully created',
         userId: user._id
     })
@@ -36,69 +39,67 @@ export const signup = async (req, res, next) => {
 export const login = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const { email, password } = req.body;
     const user = await UserSchema.findOne({email: email}) as UserDocument;
-    if (!user) {
-        const error = new Error('User does not exist') as IError;
-        error.statusCode = 404;
-        throw error;
+
+    throwNotFound(user, 'User does not exist', next)
+
+    try{
+        const match = await compareUserPasswordService(password, user.password, next)
+        throwNotMatch(match, next, 'You entered an incorrect password')
+        const token = user.generateAccessToken() ;
+        res.status(200).json({
+            message: 'User successfully logged in',
+            token: token
+        })
+    } catch(error) {
+        const err = createError(error);
+        next(err)
     }
 
-    const match = await compareUserPasswordService(password, user.password, next)
-    if(!match) {
-        const error = new Error('You entered an incorrect password') as IError;
-        error.statusCode = 401;
-        throw error;
-    }
-    const token = user.generateAccessToken() ;
-    res.status(200).json({
-        message: 'User successfully logged in',
-        token: token
-    })
 }
 
-export const forgotPassword = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction) => {
     const {email, environmentURL} = req.body;
 
     const user = await UserSchema.findOne({email}) as UserDocument;
-    if (!user) {
-        const error = new Error('User does not exist') as IError;
-        error.statusCode = 404;
-        throw error;
+
+    throwNotFound(user, 'User does not exist', next)
+
+    try {
+        const token = user.generateResetPasswordToken();
+        const resetURL = `${environmentURL}/reset-password/${token}/${user._id.toString()}`;
+        user.resetPasswordToken = token;
+        await user.save()
+
+        const text = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
+          Please click on the following link, or paste this into your browser to complete the process:\n\n
+          ${resetURL}\n\n
+          If you did not request this, please ignore this email and your password will remain unchanged.\n`;
+        await sendMail('nazarbiliy@gmail.com', email, 'Reset Password', text);
+    } catch (error){
+        const err = createError(error.message, error.statusCode);
+        next(err);
     }
-
-    const token = user.generateResetPasswordToken();
-    const resetURL = `${environmentURL}/reset-password/${token}/${user._id.toString()}`;
-    user.resetPasswordToken = token;
-    await user.save()
-
-    const text = `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
-      Please click on the following link, or paste this into your browser to complete the process:\n\n
-      ${resetURL}\n\n
-      If you did not request this, please ignore this email and your password will remain unchanged.\n`;
-    await sendMail('nazarbiliy@gmail.com', email, 'Reset Password', text);
-
     res.status(200).json({ message: 'Password reset link sent' });
 }
 
-export const resetPassword = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+export const resetPassword = async (req: Request, res: Response, next: NextFunction) => {
     const {password, token, userId} = req.body;
 
     const user = await UserSchema.findOne({_id: userId}) as UserDocument
 
-    if (!user) {
-        const error = new Error('User does not exist') as IError;
-        error.statusCode = 404;
-        throw error;
+    throwNotFound(user, 'User does not exist', next)
+
+    throwNotMatch(user.resetPasswordToken !== token, next,'Invalid token')
+
+    try {
+        user.password = await createUserPasswordService(password, next)
+        user.resetPasswordToken = ''
+        await user.save()
+    } catch (error){
+        const err = createError(error.message, error.statusCode);
+        next(err);
     }
 
-    if(user.resetPasswordToken !== token) {
-        const error = new Error('Invalid token') as IError;
-        error.statusCode = 401;
-        throw error;
-    }
-
-    user.password = await createUserPasswordService(password, next)
-    user.resetPasswordToken = ''
-    await user.save()
     res.status(200).json({ message: 'Password has been changed' });
 }
 

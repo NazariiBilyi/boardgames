@@ -1,27 +1,28 @@
-import {NextFunction, Request, Response } from "express";
+import {NextFunction, Request, Response} from "express";
 import {ITEM_TYPES} from "./types";
-import BoardGame from "../../models/BoardGameSchema/BoardGameSchema";
-import {Error} from "mongoose";
-import {IError} from "../authController/types";
-import ImagesSchema from "../../models/ImagesSchema/ImagesSchema";
+import Images from "../../models/ImagesSchema/ImagesSchema";
+import {createError, throwIfMissing, validateItemType} from "../helpers/valodationHelper";
+import {createBoardGame, deleteBoardGame, findBoardGames} from "../../services/adminservice";
 
 export const addNewItem = async (req: Request, res: Response, next: NextFunction) => {
     const { itemType } = req.body;
+
+    throwIfMissing(itemType, 'Item type is required', next);
+
+    const parsedType = validateItemType(itemType, next);
+    if (parsedType === undefined) return;
+
     switch (itemType) {
         case ITEM_TYPES.BOARD_GAME:
             try {
                 const { item } = req.body
-                const createdBoardGame = await BoardGame.create({
-                    ...item
-                });
+                const createdBoardGame = await createBoardGame(item)
                 res.status(200).json({
                     message: "New board game added successfully",
                     itemId: createdBoardGame._id.toString()
                 })
             } catch (error) {
-                const err = new Error(error.message) as IError;
-                err.statusCode = error.statusCode;
-                throw err;
+                throw createError(error.message, error.statusCode);
             }
             break;
     }
@@ -37,7 +38,7 @@ export const uploadImages= async (req: Request, res: Response, next: NextFunctio
                 data: file.buffer,
                 contentType: file.mimetype
             }))
-            const newImagesArray = await ImagesSchema.create({
+            const newImagesArray = await Images.create({
                 images: imagesArray,
                 itemId
             })
@@ -46,31 +47,71 @@ export const uploadImages= async (req: Request, res: Response, next: NextFunctio
                 imagesId: newImagesArray._id.toString()
             })
         } else {
-            const err = new Error('No images provided') as IError;
-            err.statusCode = 400;
-            throw err;
+            const err = createError('No images provided', 400);
+            return next(err);
         }
     } catch (error) {
-        const err = new Error(error.message) as IError;
-        err.statusCode = error.statusCode;
-        throw err;
+        const err = createError(error.message, error.statusCode);
+        next(err);
     }
 }
 
-export const getItemsByType = async (req: Request, res: Response, next: NextFunction) => {
-    const { type } = req.params
+export const getItemsByType = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { itemType } = req.params
     let products = []
-    if(type !in ITEM_TYPES) {
-        const err = new Error('Invalid type') as IError;
-        err.statusCode = 400;
-        throw err;
-    }
-    try {
-        switch (Number(type)) {
-            case ITEM_TYPES.BOARD_GAME:
-                const products = await BoardGame.find()
-        }
-    } catch (e){
+    throwIfMissing(itemType, 'Item type is required', next);
 
+    const parsedType = validateItemType(itemType, next);
+
+    if (parsedType === undefined) return;
+
+    try {
+        switch (Number(itemType)) {
+            case ITEM_TYPES.BOARD_GAME:
+                products = await findBoardGames()
+                res.status(200).json({
+                    boardGames: products,
+                    message: 'Successfully fetched board games'
+                })
+                return;
+            default:
+                res.status(400).json({
+                    message: 'Invalid type'
+                })
+                return
+        }
+    } catch (error){
+        const err = createError(error.message, error.statusCode);
+        next(err);
     }
 }
+
+export const deleteItem = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    const { itemId, itemType } = req.params;
+
+    throwIfMissing(itemType, 'Item type is required', next);
+
+    const parsedType = validateItemType(itemType, next);
+
+    if (parsedType === undefined) return;
+
+    try {
+        switch (Number(itemType)) {
+            case ITEM_TYPES.BOARD_GAME:
+               await deleteBoardGame(itemId)
+                break;
+            default:
+                res.status(400).json({ message: 'Invalid type' });
+                return;
+        }
+
+        res.status(200).json({ message: 'Successfully deleted item' });
+    } catch (error) {
+        const err = createError(error.message, error.statusCode);
+        next(err);
+    }
+};
