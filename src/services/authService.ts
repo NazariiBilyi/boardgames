@@ -22,3 +22,7 @@ export const compareUserPasswordService = async (password: string, hashedPasswor
 export const createNewUser = async (user: IUser) => {
     return await UserSchema.create(user)
 }
+
+export const getUser = async (userId: string):Promise<IUser | null> => {
+    return UserSchema.findById(userId);
+}
