@@ -4,7 +4,7 @@ import {
     getItemsByType,
     uploadImages,
     deleteItem,
-    editItem, uploadTitleImage
+    editItem, uploadTitleImage, getItemByTypeAndId
 } from "../controllers/adminController/adminController";
 import {isAuthMiddleware} from "../middleware/isAuthMiddleware";
 import {isAdminMiddleware} from "../middleware/isAdminMiddleware";
@@ -16,11 +16,14 @@ const router = express.Router();
 
 router.use(isAuthMiddleware, isAdminMiddleware);
 
-router.put("/add-new-item/:itemType", validate(getItemValidationRules, false), addNewItem);
-router.put('/edit-item/:itemType/:itemId', validate(getItemValidationRules, true), editItem)
-router.put('/upload-title-image', uploadSingle, uploadTitleImage)
-router.put("/upload-images", uploadMultiple, uploadImages);
-router.get('/get-items/:itemType', getItemsByType)
-router.delete('/delete-item/:itemType/:itemId', deleteItem)
+router.put('/item/image', uploadSingle, uploadTitleImage);
+router.put('/item/images', uploadMultiple, uploadImages);
+
+router.put("/item/:itemType/:itemId", validate(getItemValidationRules, true), editItem);
+router.put("/item/:itemType", validate(getItemValidationRules, false), addNewItem);
+
+router.get('/item/:id/:itemType', getItemByTypeAndId);
+router.get('/items/:itemType', getItemsByType);
+router.delete('/item/:itemType/:itemId', deleteItem);
 
 export default router;
