@@ -32,9 +32,13 @@ router.put("/signup", [
 router.post("/login", [
     body('email')
         .isEmail()
+        .not()
+        .isEmpty()
         .withMessage('Please enter valid email'),
     body('password')
         .trim()
+        .not()
+        .isEmpty()
         .isLength({ min: 5, max: 255 }),
 ], login)
 

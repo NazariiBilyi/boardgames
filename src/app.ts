@@ -14,23 +14,6 @@ app.use(cors({
   origin: '*'
 }));
 
-const fileFilter = (req, file, cb) => {
-    if (
-        file.mimetype === 'image/png' ||
-        file.mimetype === 'image/jpg' ||
-        file.mimetype === 'image/jpeg'
-    ) {
-        cb(null, true);
-    } else {
-        cb(null, false);
-    }
-};
-
-const storage = multer.memoryStorage(); // Store files in memory
-const upload = multer({ storage: storage, fileFilter: fileFilter});
-
-app.use(upload.array('images', 10));
-
 app.use(bodyParser.json());
 
 const MONGODB_URI = process.env.MONGO_URI;

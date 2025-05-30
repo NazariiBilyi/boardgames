@@ -8,6 +8,11 @@ const ShopItemSchema = new Schema<IShopItem>({
         type: String,
         required: true
     },
+    titleImage: {
+        ref: 'Images',
+        type: Schema.Types.ObjectId,
+        required: true
+    },
     type: {
         type: String,
         required: true
@@ -26,7 +31,7 @@ const ShopItemSchema = new Schema<IShopItem>({
     },
     images: {
         ref: 'Images',
-        type: [Schema.Types.ObjectId],
+        type: Schema.Types.ObjectId,
     },
     ageRestrictions: {
         type: String,
@@ -37,13 +42,5 @@ const ShopItemSchema = new Schema<IShopItem>({
         required: true
     }
 })
-
-ShopItemSchema.set('toJSON', {
-    transform: (doc, ret) => {
-        ret.id = ret._id.toString();
-        delete ret._id;
-        delete ret.__v;
-    }
-});
 
 export default mongoose.model<IShopItem>('ShopItem', ShopItemSchema);

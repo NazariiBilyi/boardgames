@@ -4,6 +4,12 @@ import {ITEM_TYPES} from "../adminController/types";
 import {validationResult} from "express-validator";
 import {Error} from "mongoose";
 
+export const createError = (message: string, statusCode: number = 400): IError => {
+    const err = new Error(message) as IError;
+    err.statusCode = statusCode;
+    return err;
+};
+
 export const throwIfMissing = (value: string | number | boolean, message: string, next: NextFunction) => {
     if (value === null || value === undefined || value === "") {
         const err = createError(message, 400);
@@ -48,8 +54,3 @@ export const validateInputData = (req: Request, next: NextFunction): void => {
     }
 }
 
-export const createError = (message: string, statusCode: number = 400): IError => {
-    const err = new Error(message) as IError;
-    err.statusCode = statusCode;
-    return err;
-};
