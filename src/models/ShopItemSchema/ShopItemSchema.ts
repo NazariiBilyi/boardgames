@@ -43,4 +43,20 @@ const ShopItemSchema = new Schema<IShopItem>({
     }
 })
 
+ShopItemSchema.set('toJSON', {
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc, ret) {
+        ret.id = ret._id;
+        delete ret._id;
+
+        if (ret.__t) {
+            ret.type = ret.__t;
+            delete ret.__t;
+        }
+
+        return ret;
+    }
+});
+
 export default mongoose.model<IShopItem>('ShopItem', ShopItemSchema);

@@ -8,7 +8,9 @@ import {
     findBoardGames,
     updateBoardGame,
     createTempTitleImage, createTempImages, constAddImagesToBoardGame
-} from "../../services/adminService";
+} from "../../services/adminService/adminService";
+
+import BoardGame from '../../models/BoardGameSchema/BoardGameSchema'
 
 export const addNewItem = async (req: Request, res: Response, next: NextFunction) => {
     const { itemType } = req.params;
@@ -21,9 +23,17 @@ export const addNewItem = async (req: Request, res: Response, next: NextFunction
     switch (parsedType) {
         case ITEM_TYPES.BOARD_GAME:
             try {
-                const createdBoardGame = await createBoardGame(req.body)
 
-                await constAddImagesToBoardGame(req.body.titleImage, req.body.images, createdBoardGame._id.toString())
+                const boardGameForCreation = req.body;
+
+                const createdBoardGame = await createBoardGame(boardGameForCreation)
+
+                const {titleImageId, imagesId} = await constAddImagesToBoardGame(req.body.titleImage, req.body.images, createdBoardGame._id.toString())
+
+                await BoardGame.findByIdAndUpdate(createdBoardGame._id, {
+                    titleImage: titleImageId,
+                    images: imagesId,
+                });
 
                 res.status(200).json({
                     message: "New board game added successfully",
@@ -127,7 +137,15 @@ export const getItemsByType = async (req: Request, res: Response, next: NextFunc
     try {
         switch (parsedType) {
             case ITEM_TYPES.BOARD_GAME:
-                products = await findBoardGames()
+                products = await findBoardGames({}, {
+                    images: 0,
+                    numberOfPlayers: 0,
+                    titleImage: 0,
+                    language: 0,
+                    ageRestrictions: 0,
+                    description: 0,
+                    gameTime: 0
+                })
                 res.status(200).json({
                     boardGames: products,
                     message: 'Successfully fetched board games'
@@ -146,17 +164,17 @@ export const getItemsByType = async (req: Request, res: Response, next: NextFunc
 }
 
 export const getItemByTypeAndId = async (req: Request, res: Response, next: NextFunction) => {
-    const {itemType, itemId} = req.params;
+    const {id, type} = req.params;
 
-    throwIfMissing(itemType, 'Item type is required', next);
-    throwIfMissing(itemId, 'Item id is required', next);
+    throwIfMissing(type, 'Item type is required', next);
+    throwIfMissing(id, 'Item id is required', next);
 
-    const parsedType = validateItemType(itemType, next);
+    const parsedType = validateItemType(type, next);
 
     switch (parsedType) {
         case ITEM_TYPES.BOARD_GAME:
             try {
-                const boardGame = findBoardGameById(itemId)
+                const boardGame = await findBoardGameById(id)
 
                 res.status(200).json({
                     boardGame,

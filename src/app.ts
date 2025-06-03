@@ -2,10 +2,10 @@ import express, {Response, Request, NextFunction} from "express";
 import mongoose from "mongoose";
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import multer from 'multer';
 
 import authRouter from './routes/auth';
-import adminRouter from './routes/admin'
+import adminRouter from './routes/admin';
+import imagesRouter from './routes/images';
 import {IError} from "./controllers/authController/types";
 
 const app = express();
@@ -28,6 +28,7 @@ app.use((err: IError, req: Request, res: Response, next: NextFunction) => {
 
 app.use('/auth', authRouter)
 app.use('/admin', adminRouter)
+app.use('/images', imagesRouter)
 
 mongoose.connect(MONGODB_URI).then((db) => {
     app.listen(process.env.PORT || 8080)

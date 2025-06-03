@@ -22,7 +22,7 @@ router.put('/item/images', uploadMultiple, uploadImages);
 router.put("/item/:itemType/:itemId", validate(getItemValidationRules, true), editItem);
 router.put("/item/:itemType", validate(getItemValidationRules, false), addNewItem);
 
-router.get('/item/:id/:itemType', getItemByTypeAndId);
+router.get('/item/:id/:type', getItemByTypeAndId);
 router.get('/items/:itemType', getItemsByType);
 router.delete('/item/:itemType/:itemId', deleteItem);
 
