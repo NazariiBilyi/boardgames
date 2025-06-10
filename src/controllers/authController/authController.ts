@@ -3,8 +3,8 @@ import UserSchema from '../../models/UserSchema/UserSchema';
 import express, {NextFunction, Request, Response} from 'express';
 import {IError} from "./types";
 import {Error } from "mongoose";
-import {compareUserPasswordService, createNewUser, createUserPasswordService} from "../../services/authService";
-import {sendMail} from "../../services/mailService";
+import {compareUserPasswordService, createNewUser, createUserPasswordService} from "../../services/authService/authService";
+import {sendMail} from "../../services/mailService/mailService";
 import {IUser, UserDocument} from "../../models/UserSchema/types";
 import {createError, throwNotFound, throwNotMatch, validateInputData} from "../helpers/valodationHelper";
 

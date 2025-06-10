@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
-import {IError} from "../controllers/authController/types";
+import {IError} from "../../controllers/authController/types";
 import {NextFunction} from "express";
-import {IUser} from "../models/UserSchema/types";
-import UserSchema from "../models/UserSchema/UserSchema";
+import {IUser} from "../../models/UserSchema/types";
+import UserSchema from "../../models/UserSchema/UserSchema";
 
 export const createUserPasswordService = async (password: string, next: NextFunction) => {
    return await bcrypt.hash(password, 12).catch((err: IError) => {

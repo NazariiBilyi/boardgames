@@ -7,10 +7,9 @@ import {
     findBoardGameById,
     findBoardGames,
     updateBoardGame,
-    createTempTitleImage, createTempImages, constAddImagesToBoardGame
 } from "../../services/adminService/adminService";
-
 import BoardGame from '../../models/BoardGameSchema/BoardGameSchema'
+import {addImagesToBoardGame} from "../../services/imagesService/imagesService";
 
 export const addNewItem = async (req: Request, res: Response, next: NextFunction) => {
     const { itemType } = req.params;
@@ -28,10 +27,9 @@ export const addNewItem = async (req: Request, res: Response, next: NextFunction
 
                 const createdBoardGame = await createBoardGame(boardGameForCreation)
 
-                const {titleImageId, imagesId} = await constAddImagesToBoardGame(req.body.titleImage, req.body.images, createdBoardGame._id.toString())
+                const imagesId = await addImagesToBoardGame(req.body.images, createdBoardGame._id.toString())
 
                 await BoardGame.findByIdAndUpdate(createdBoardGame._id, {
-                    titleImage: titleImageId,
                     images: imagesId,
                 });
 
@@ -47,47 +45,7 @@ export const addNewItem = async (req: Request, res: Response, next: NextFunction
     }
 }
 
-export const uploadTitleImage = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        if (!req.file) {
-            const err = createError('No image provided', 400);
-            next(err)
-        }
-
-        const newImage = await createTempTitleImage(req.file)
-
-        res.status(200).json({
-            message: 'Image uploaded successfully',
-            imageId: newImage._id.toString(),
-        });
-    } catch (error) {
-        const err = createError(error.message, error.statusCode);
-        next(err);
-    }
-}
-
-export const uploadImages= async (req: Request, res: Response, next: NextFunction) => {
-    try{
-        const { files } = req
-        if(Array.isArray(files)) {
-
-            const newImagesArray = await createTempImages(files)
-
-            res.status(200).json({
-                message: "Images uploaded successfully",
-                imagesId: newImagesArray._id.toString()
-            })
-        } else {
-            const err = createError('No images provided', 400);
-            return next(err);
-        }
-    } catch (error) {
-        const err = createError(error.message, error.statusCode);
-        next(err);
-    }
-}
-
-export const editItem = async (req: Request, res: Response, next: NextFunction) => {
+export const updateItem = async (req: Request, res: Response, next: NextFunction) => {
     const { itemType, itemId } = req.params
 
     throwIfMissing(itemType, 'Item type is required', next);

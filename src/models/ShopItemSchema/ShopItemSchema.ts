@@ -8,11 +8,6 @@ const ShopItemSchema = new Schema<IShopItem>({
         type: String,
         required: true
     },
-    titleImage: {
-        ref: 'Images',
-        type: Schema.Types.ObjectId,
-        required: true
-    },
     type: {
         type: String,
         required: true

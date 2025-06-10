@@ -1,7 +1,7 @@
 import {Response, NextFunction} from 'express';
 import {IAuthenticatedRequest} from "./types";
 import {createError} from "../controllers/helpers/valodationHelper";
-import {getUser} from "../services/authService";
+import {getUser} from "../services/authService/authService";
 
 export const isAdminMiddleware = async (req: IAuthenticatedRequest, res: Response, next: NextFunction) => {
     const reqUser = req.user;

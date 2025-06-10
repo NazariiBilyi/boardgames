@@ -7,7 +7,11 @@ const TemporaryImagesSchema = new Schema({
     images: [
         {
             data: Buffer,
-            contentType: String
+            contentType: String,
+            name: String,
+            mimetype: String,
+            size: Number,
+            isTitle: Boolean,
         }
     ],
     uploadedAt: {

@@ -7,7 +7,11 @@ const ImagesSchema = new Schema<IImages>({
     images: [
         {
             data: Buffer,
-            contentType: String
+            contentType: String,
+            name: String,
+            mimetype: String,
+            size: Number,
+            isTitle: Boolean
         }
     ],
     itemId: {

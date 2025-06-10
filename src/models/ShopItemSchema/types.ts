@@ -1,14 +1,12 @@
-import { Types } from 'mongoose';
+import { Types, Document } from 'mongoose';
 
-export interface IShopItem {
-    _id?: Types.ObjectId,
-    titleImage: Types.ObjectId,
+export interface IShopItem extends Document{
     name: string;
     type: string;
     price: number;
     availability: boolean;
     description: string;
-    images?: Types.ObjectId;
+    images: Types.ObjectId;
     ageRestrictions: string;
     vendor: string;
 }
