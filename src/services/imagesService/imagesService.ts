@@ -34,7 +34,7 @@ export const addImagesToBoardGame = async (images: string, boarGameId: string) =
     return insertedImages._id;
 }
 
-export const updateImages = async (collectionId: string, files: IImageData[], imagesForDelete: string[], next: NextFunction) => {
+export const updateImages = async (collectionId: string, files: IImageData[], titleImageName: string, imagesForDelete: string[], next: NextFunction) => {
     const images = await Images.findById(collectionId);
     throwNotFound(images, 'Images not found', next)
 
@@ -43,10 +43,21 @@ export const updateImages = async (collectionId: string, files: IImageData[], im
         contentType: file.mimetype,
         name: file.originalname,
         mimetype: file.mimetype,
-        size: file.size
+        size: file.size,
+        isTitle: titleImageName === file.originalname
     }))
 
     const operations: Promise<any>[] = [];
+
+    const updatedImages = images.images.map(img => {
+        img.isTitle = img._id.toString() === titleImageName;
+        return img
+    })
+
+    if(titleImageName) {
+        images.images = updatedImages
+        await images.save()
+    }
 
     if (imagesForDelete?.length > 0) {
         operations.push(
@@ -65,6 +76,5 @@ export const updateImages = async (collectionId: string, files: IImageData[], im
             )
         );
     }
-
     await Promise.all(operations);
 }

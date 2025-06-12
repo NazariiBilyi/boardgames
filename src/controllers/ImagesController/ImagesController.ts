@@ -42,9 +42,10 @@ export const updateImagesById = async (req: Request, res: Response, next: NextFu
         const { files } = req;
         const { collectionId } = req.params
         const imagesForDelete = req.body.imagesForDelete;
+        const newTitle = req.body.newTitle
         const normalizedFiles = Array.isArray(files) ? files : [];
         throwIfMissing(collectionId, 'Images not found', next);
-        await updateImages(collectionId, normalizedFiles, imagesForDelete, next);
+        await updateImages(collectionId, normalizedFiles, newTitle, imagesForDelete, next);
         res.status(200).json({
             message: "Images updated successfully"
         })
